@@ -48,7 +48,7 @@ def create_and_save_w2v_model(
         sample=6e-5,
         alpha=0.03,
         min_alpha=0.0007,
-        workers=1
+        workers=4
 ):
     '''
         Creates, trains, and saves a word2vec model to a file naming
@@ -78,7 +78,7 @@ def create_and_save_w2v_model(
         # sample=sample,
         # alpha=alpha,
         # min_alpha=min_alpha,
-        # workers=workers
+        workers=workers
     )
     # Build vocab
     t = time()
