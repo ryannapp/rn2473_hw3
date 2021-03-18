@@ -19,4 +19,7 @@
 - It will also create a directory called "results" if it does not already exist and it will save the results of the evaluation there as a csv file with headers. 
 
 
-## References: # rn2473_hw3
+## References:
+- [Truncated SVD](https://sklearn.org/modules/generated/sklearn.decomposition.TruncatedSVD.html#examples-using-sklearn-decomposition-truncatedsvd)
+- [Tutorial for sparse random](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.random.html)
+- [SVD tutorial](https://machinelearningmastery.com/singular-value-decomposition-for-machine-learning/)
