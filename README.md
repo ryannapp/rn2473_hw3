@@ -1,7 +1,7 @@
-Ryan Napolitano (rn2473)
-Professor McKeown
-Natural Language Processing, Spring 2021
-Homework 3
+>Ryan Napolitano (rn2473) - 
+>Professor McKeown - 
+>Natural Language Processing, Spring 2021 - 
+>Homework 3
 
 ## Homework 3
 
