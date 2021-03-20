@@ -8,14 +8,12 @@ from time import time
 from numpy import array
 from sklearn.decomposition import TruncatedSVD
 from sklearn.random_projection import _sparse_random_matrix
+from scipy.sparse import coo_matrix
 
 # Required hyper-parameters
 CONTEXT_WINDOWS = (2, 5, 10)
 DIMENSIONS = (50, 100, 300)
 NEGATIVE_SAMPLES = (1, 5, 15)
-
-# For performance tuning
-EPOCHS = 30  # TODO: Adjust Epochs
 
 # Specifying corpus
 PATH_TO_CORPUS = "data/brown.txt"
@@ -30,13 +28,14 @@ RESULTS_PREFIX = "results"
 # Word2Vec run settings
 W2V_PREFIX = "w2v"
 W2V_EXT = "bin"
-GENERATE_W2V_MODELS = True
-EVALUATE_W2V_MODELS = True
+GENERATE_W2V_MODELS = False
+EVALUATE_W2V_MODELS = False
+EPOCHS = 30  # TODO: Adjust Epochs
 
 # svd run settings
 SVD_PREFIX = "svd"
 SVD_EXT = "bin"
-GENERATE_SVD_MODELS = False
+GENERATE_SVD_MODELS = True
 EVALUATE_SVD_MODELS = False
 
 
@@ -68,6 +67,8 @@ def create_and_save_w2v_model(
         W2V_PREFIX, context_window_size, dimensions, negative_samples, W2V_EXT
     )
     print("Building Model: " + model_name)
+
+    sentences = MemCorpus()
 
     # Create the model
     model = gensim.models.Word2Vec(
@@ -101,7 +102,36 @@ def create_and_save_w2v_model(
     model.wv.save_word2vec_format(os.path.join(PATH_TO_MODELS, model_name), binary=True)
 
 
-def create_and_save_svd_model(context_window_size, dimensions,):
+def create_co_matrix(context_window):
+    '''
+    Constructs a co-occurrence matrix
+    :param context_window: an int which represents the size on the context window
+    :return: vocab (word-to-index dictionary) and a co-occurrence matrix (coo_matrix)
+    '''
+    sentences = MemCorpus()
+    data = []
+    rows = []
+    cols = []
+    vocab = {}
+
+    for s in sentences:
+        for i, word in enumerate(s):
+            r = vocab.setdefault(word, len(vocab))
+            start_idx = max(i - context_window, 0)
+            end_idx = min(len(s) - 1, i + context_window)
+            for j in range(start_idx, end_idx + 1):
+                if i == j:
+                    continue
+                c = vocab.setdefault(s[j], len(vocab))
+                rows.append(r)
+                cols.append(c)
+                data.append(1)
+
+    cooccurrence_matrix = coo_matrix((data, (rows, cols)), shape=(len(vocab), len(vocab)))
+    return vocab, cooccurrence_matrix
+
+
+def create_and_save_svd_model(context_window_size, dimensions, co_occurrence_matrix, vocabulary):
     model_name = "{}_{}_{}.{}".format(
         SVD_PREFIX, context_window_size, dimensions, SVD_EXT
     )
@@ -154,8 +184,6 @@ if __name__ == '__main__':
     logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s",
                         datefmt='%H:%M:%S', level=logging.INFO)
 
-    sentences = MemCorpus()
-
     if GENERATE_W2V_MODELS:
         # Build the 27 word2vec models
         t = time()
@@ -169,8 +197,9 @@ if __name__ == '__main__':
         # Build the 9 svd models
         t = time()
         for cw in CONTEXT_WINDOWS:
+            vocab, com = create_co_matrix(cw)
             for d in DIMENSIONS:
-                create_and_save_svd_model(cw, d)
+                create_and_save_svd_model(cw, d, com, vocab)
         print('Time to build all svd models: {} mins'.format(round((time() - t) / 60, 2)))
 
     if EVALUATE_SVD_MODELS or EVALUATE_W2V_MODELS:
