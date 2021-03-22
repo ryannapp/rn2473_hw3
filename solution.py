@@ -1,14 +1,13 @@
-import gensim.models
 import logging
 import os
-import pickle
-from evaluate import evaluate_models
-from gensim import utils
+import numpy as np
+from gensim import utils, models
 from time import time
-from numpy import array
-from sklearn.decomposition import TruncatedSVD
-from sklearn.random_projection import _sparse_random_matrix
+from math import log
+from scipy.sparse.linalg import svds
+from scipy.linalg import sqrtm
 from scipy.sparse import coo_matrix
+from evaluate import evaluate_models
 
 # Required hyper-parameters
 CONTEXT_WINDOWS = (2, 5, 10)
@@ -19,10 +18,10 @@ NEGATIVE_SAMPLES = (1, 5, 15)
 PATH_TO_CORPUS = "data/brown.txt"
 
 # Path to directory
-PATH_TO_MODELS = "models/"
+PATH_TO_MODELS = "results"
 
 # Parameters for results
-PATH_TO_RESULTS = "results/"
+PATH_TO_RESULTS = "results"
 RESULTS_PREFIX = "results"
 
 # Word2Vec run settings
@@ -34,9 +33,9 @@ EPOCHS = 30  # TODO: Adjust Epochs
 
 # svd run settings
 SVD_PREFIX = "svd"
-SVD_EXT = "bin"
+SVD_EXT = "txt"
 GENERATE_SVD_MODELS = True
-EVALUATE_SVD_MODELS = False
+EVALUATE_SVD_MODELS = True
 
 
 class MemCorpus:
@@ -71,7 +70,7 @@ def create_and_save_w2v_model(
     sentences = MemCorpus()
 
     # Create the model
-    model = gensim.models.Word2Vec(
+    model = models.Word2Vec(
         # training algorithm
         sg=1,  # skipgram model
         hs=0,  # don't use hierarchical softmax (default 0)
@@ -102,16 +101,16 @@ def create_and_save_w2v_model(
     model.wv.save_word2vec_format(os.path.join(PATH_TO_MODELS, model_name), binary=True)
 
 
-def create_co_matrix(context_window):
+def create_ppmi_matrix(context_window):
     '''
-    Constructs a co-occurrence matrix
+    Constructs a ppmi matrix
     :param context_window: an int which represents the size on the context window
     :return: vocab (word-to-index dictionary) and a co-occurrence matrix (coo_matrix)
     '''
     sentences = MemCorpus()
     data = []
-    rows = []
-    cols = []
+    row = []
+    col = []
     vocab = {}
 
     for s in sentences:
@@ -123,54 +122,55 @@ def create_co_matrix(context_window):
                 if i == j:
                     continue
                 c = vocab.setdefault(s[j], len(vocab))
-                rows.append(r)
-                cols.append(c)
+                row.append(r)
+                col.append(c)
                 data.append(1)
 
-    cooccurrence_matrix = coo_matrix((data, (rows, cols)), shape=(len(vocab), len(vocab)))
-    return vocab, cooccurrence_matrix
+    cooccurrence_matrix = coo_matrix((data, (row, col)), shape=(len(vocab), len(vocab)))
+    cooccurrence_matrix.sum_duplicates()
+
+    # Create PPMI Matrix
+    corp_size = cooccurrence_matrix.sum()
+    word_counts = cooccurrence_matrix.sum(axis=0).tolist()[0]
+
+    ppmi_data = []
+    for r, c, d, in zip(cooccurrence_matrix.row, cooccurrence_matrix.col, cooccurrence_matrix.data):
+        ppmi_entry = max(0., log((d * corp_size)/(word_counts[r] * word_counts[c])))
+        ppmi_data.append(ppmi_entry)
+    ppmi_matrix = coo_matrix((ppmi_data, (cooccurrence_matrix.row, cooccurrence_matrix.col)),
+                             shape=(len(vocab), len(vocab)))
+    return vocab, ppmi_matrix
 
 
-def create_and_save_svd_model(context_window_size, dimensions, co_occurrence_matrix, vocabulary):
+def create_and_save_svd_model(context_window_size, dimensions, ppmi_matrix, vocabulary):
+    '''
+    Creates word embeddings for an svd model and saves them as a txt file.
+    Saved file is space delimited txt file with one word vector per line.
+    :param context_window_size:
+    :param dimensions:
+    :param ppmi_matrix:
+    :param vocabulary:
+    :return:
+    '''
     model_name = "{}_{}_{}.{}".format(
         SVD_PREFIX, context_window_size, dimensions, SVD_EXT
     )
     print("Building model: " + model_name)
 
-    # Calculate the co-occurence matrix
-    m = _sparse_random_matrix(500, 500)  # ppmi matrix #TODO: UGHHHHHHHHHHHHH
-
-    # Create the model
-    svd = TruncatedSVD(
-        n_components=dimensions,  # default 2
-        algorithm="randomized",  # default "randomized"
-        n_iter=5,  # default 5 #TODO: figure out number for best performance
-        random_state=42,  # default None
+    # Calculate the word embeddings
+    u, s, vt = svds(
+        ppmi_matrix,
+        k=dimensions,
+        maxiter=None,  # default None
     )
-    svd.fit(m)
+    w = np.matmul(u, sqrtm(np.diag(s)))
+    word_embeddings = {k: w[v] for (k, v) in vocab.items()}
 
     # Save model
-    with open(os.path.join(PATH_TO_MODELS, model_name), "wb") as f:
-        pickle.dump(svd, f)
-
-
-###### TESTING ######
-# vector = model.wv['fruit']
-# print(vector)
-# similar = model.wv.most_similar(positive=["wallet"])
-# print(similar)
-# dissimilar = model.wv.doesnt_match(['apple', 'house', 'fire'])
-# print(dissimilar)
-# analogy_1 = model.wv.most_similar(positive=["actress", "man"], negative=["woman"], topn=3)
-# print(analogy_1)
-# analogy_2 = model.wv.most_similar(positive=["Paris", "Germany"], negative=["France"], topn=3)
-# print(analogy_2)
-# analogy_3 = model.wv.most_similar(positive=["puppy", "cat"], negative=["dog"], topn=3)
-# print(analogy_3)
-
-def eval_model(path_to_model):
-    # model = load_model(path_to_model)
-    wordsim_corr, wordsim_pval = evaluate_models()
+    with open(os.path.join(PATH_TO_MODELS, model_name), "w") as f:
+        for (k, vec) in word_embeddings.items():
+            f.write(k + " " + " ".join([str(x) for x in vec]) + "\r\n")
+        f.close()
 
 
 if __name__ == '__main__':
@@ -197,7 +197,7 @@ if __name__ == '__main__':
         # Build the 9 svd models
         t = time()
         for cw in CONTEXT_WINDOWS:
-            vocab, com = create_co_matrix(cw)
+            vocab, com = create_ppmi_matrix(cw)
             for d in DIMENSIONS:
                 create_and_save_svd_model(cw, d, com, vocab)
         print('Time to build all svd models: {} mins'.format(round((time() - t) / 60, 2)))
