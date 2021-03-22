@@ -23,3 +23,4 @@
 - [Truncated SVD](https://sklearn.org/modules/generated/sklearn.decomposition.TruncatedSVD.html#examples-using-sklearn-decomposition-truncatedsvd)
 - [Tutorial for sparse random](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.random.html)
 - [SVD tutorial](https://machinelearningmastery.com/singular-value-decomposition-for-machine-learning/)
+- [Convert embedding dictionary to gensim w2v format](https://www.kaggle.com/matsuik/convert-embedding-dictionary-to-gensim-w2v-format)
