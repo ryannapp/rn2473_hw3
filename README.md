@@ -24,3 +24,6 @@
 - [Tutorial for sparse random](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.random.html)
 - [SVD tutorial](https://machinelearningmastery.com/singular-value-decomposition-for-machine-learning/)
 - [Convert embedding dictionary to gensim w2v format](https://www.kaggle.com/matsuik/convert-embedding-dictionary-to-gensim-w2v-format)
+- [bert huggingface tutorial](https://huggingface.co/transformers/main_classes/model.html)
+- [bert tutorial](https://medium.com/analytics-vidhya/bert-word-embeddings-deep-dive-32f6214f02bf)
+- [bert tutorial](https://mccormickml.com/2019/05/14/BERT-word-embeddings-tutorial/)
