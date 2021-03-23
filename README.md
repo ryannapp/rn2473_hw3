@@ -12,11 +12,13 @@
 ## How to run:
 - Run solution.py at the command line with no arguments.
 
-- Solution .py assumes the Brown corpus is available at data/brown.txt
+- solution.py assumes the Brown corpus is available at data/brown.txt
 
-- It will create a directory called "models" if it does not already exist and will save the trained models to this directory.
+- It will create a directory called "models" if it does not already exist and will 
+  save the trained models to this directory.
 
-- It will also create a directory called "results" if it does not already exist and it will save the results of the evaluation there as a csv file with headers. 
+- It will also create a directory called "results" if it does not already exist, and it 
+  will save the results of the evaluation there as a csv file with headers. 
 
 
 ## References:

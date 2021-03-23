@@ -18,7 +18,6 @@ def get_word_vectors(text, model, tokenizer):
     with torch.no_grad():
         outputs = model(tokens_tensor)
         last_hidden_state = outputs[0]
-        print(last_hidden_state.shape)
         embeddings = last_hidden_state  # TODO: Do summing over hidden states instead
     # Remove dimension 1, the "batches"
     embeddings = torch.squeeze(embeddings, dim=0)
