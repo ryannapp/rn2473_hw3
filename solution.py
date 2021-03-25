@@ -27,8 +27,8 @@ RESULTS_PREFIX = "results"
 # Word2Vec run settings
 W2V_PREFIX = "w2v"
 W2V_EXT = "bin"
-GENERATE_W2V_MODELS = False
-EVALUATE_W2V_MODELS = False
+GENERATE_W2V_MODELS = True
+EVALUATE_W2V_MODELS = True
 EPOCHS = 30  # TODO: Adjust Epochs
 
 # svd run settings
