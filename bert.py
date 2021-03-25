@@ -125,9 +125,9 @@ def eval_bats_file(model, matrix, vocab, indices, f, repeat=False, multi=0):
                 targets.append(pairs[j][1])
                 exclude.append([pairs[i][0], bw, pairs[j][0]])
 
-        print("qa ", len(qa))
-        print("qb ", len(qb))
-        print("qc ", len(qc))
+        # print("qa ", len(qa))
+        # print("qb ", len(qb))
+        # print("qc ", len(qc))
 
         for queries in [qa, qb, qc]:
             queries = np.array([x / norm(x) for x in queries])
@@ -168,10 +168,10 @@ def eval_bats_file(model, matrix, vocab, indices, f, repeat=False, multi=0):
                 exclude.append(qa + qbs + [pairs[i + k][0]])
                 groups.append(len(groups))
 
-        print(np.shape(transposed))
+        # print(np.shape(transposed))
 
         sims = np.matmul(np.array(offsets), transposed)
-        print(np.shape(sims))
+        # print(np.shape(sims))
         for i in range(len(exclude)):
             for w in exclude[i]:
                 sims[i][indices[w]] = 0
