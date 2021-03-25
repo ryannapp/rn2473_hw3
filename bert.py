@@ -119,7 +119,7 @@ def eval_bats_file(model, matrix, vocab, indices, f, repeat=False, multi=0):
             c = matrix[indices[pairs[j][0]]]
             for bw in pairs[i][1]:
                 qa.append(a)
-                qb.append(matrix[bw])
+                qb.append(matrix[indices[bw]])
                 qc.append(c)
                 groups.append(i)
                 targets.append(pairs[j][1])
