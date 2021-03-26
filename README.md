@@ -9,17 +9,21 @@
 - Ryan Napolitano - rn2473
 - Jason Herrera - jjh2210
 
-## How to run:
+## solution.py
 - Run solution.py at the command line with no arguments.
 
 - solution.py assumes the Brown corpus is available at data/brown.txt
 
-- It will create a directory called "models" if it does not already exist and will 
+- It will create a directory called "results" if it does not already exist and will 
   save the trained models to this directory.
 
 - It will also create a directory called "results" if it does not already exist, and it 
   will save the results of the evaluation there as a csv file with headers. 
-
+  
+## bert.py
+- Run bert.py at the command line with no arguments.
+  
+- It will run all three evaluations and print the results to the console.
 
 ## References:
 - [Truncated SVD](https://sklearn.org/modules/generated/sklearn.decomposition.TruncatedSVD.html#examples-using-sklearn-decomposition-truncatedsvd)
